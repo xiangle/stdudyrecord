@@ -1,0 +1,20 @@
+启动SSH代理并将密钥添加到代理中,你首次解锁密钥时，它会在代理中保持解锁状态一段时间，不需要每次都输入密码
+eval $(ssh-agent)
+ssh-add ~/.ssh/id_rsa
+
+强制将远程仓库内容覆盖本地内容
+git fetch --all
+git reset --hard origin/master
+git pull
+
+git关联远程分支
+git branch --set-upstream-to=origin/master
+
+git查看本地分支和远程分支的关联关系
+git remote -vv
+
+git查看所有分支
+git branch -add
+
+git查看关联的远程仓库
+git remote -v
