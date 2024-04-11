@@ -1,0 +1,70 @@
+from conans import ConanFile, CMake
+
+class MyProjectConan(ConanFile):
+    # 定义包的名称
+    name = "my_project"
+    # 定义包的版本
+    version = "1.0"
+    # 定义包的许可证
+    license = "MIT"
+    # 定义包的作者
+    author = "Your Name"
+    # 定义包的URL
+    url = "https://github.com/yourusername/my_project"
+    # 定义包的描述
+    description = "A brief description of my_project"
+    # 定义包的话题
+    topics = ("conan", "example", "template")
+    # 定义允许的设置项
+    settings = "os", "compiler", "build_type", "arch"
+    # 定义构建文件的生成器
+    generators = "cmake"
+    # 定义项目所需的依赖项
+    requires = "gtest/1.11.0"  # Example dependency
+
+    # 定义如何构建项目的方法
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
+
+    # 定义如何打包项目的方法
+    def package(self):
+        # 将头文件复制到include目录下
+        self.copy("*.h", dst="include", src="include")
+        # 将库文件复制到lib目录下
+        self.copy("*my_project.lib", dst="lib", keep_path=False)
+        # 将dll文件复制到bin目录下
+        self.copy("*.dll", dst="bin", keep_path=False)
+        # 将so文件复制到lib目录下
+        self.copy("*.so", dst="lib", keep_path=False)
+        # 将dylib文件复制到lib目录下
+        self.copy("*.dylib", dst="lib", keep_path=False)
+        # 将a文件复制到lib目录下
+        self.copy("*.a", dst="lib", keep_path=False)
+
+    # 定义包的元信息
+    def package_info(self):
+        # 指定链接的库名称
+        self.cpp_info.libs = ["my_project"]
+
+#another
+from conans import ConanFile
+
+class MyProjectConan(ConanFile):
+    # 定义包的名称
+    name = "my_project"
+    # 定义包的版本
+    version = "1.0"
+    # 定义包的许可证
+    license = "MIT"
+    # 定义包的URL
+    url = "https://github.com/yourusername/my_project"
+    # 定义包的描述
+    description = "A brief description of my_project"
+    # 定义包的话题
+    topics = ("conan", "example", "template")
+    # 定义允许的设置项
+    settings = "os", "compiler", "build_type", "arch"
+    # 定义项目所需的依赖项
+    requires = "gtest/1.11.0"

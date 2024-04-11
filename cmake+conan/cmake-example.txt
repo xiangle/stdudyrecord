@@ -1,0 +1,31 @@
+父
+cmake_minimum_required(VERSION 3.10)
+project(MyProject)
+
+# 导入 conanbuildinfo.cmake 文件
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+# 配置项目的依赖项
+conan_basic_setup(TARGETS)
+
+# 添加父项目的源文件
+add_executable(my_executable main.cpp)
+
+# 链接 Conan 依赖项
+target_link_libraries(my_executable CONAN_PKG::gtest)
+
+# 添加子项目
+add_subdirectory(subproject)
+
+
+
+
+子
+# 添加子项目的源文件
+add_executable(sub_executable main.cpp)
+
+# 在子项目中查找已经在父项目中由 Conan 安装的 gtest
+find_package(GTest REQUIRED)
+if(GTEST_FOUND)
+    # 如果找到 gtest，则链接它
+    target_link_libraries(sub_executable GTest::GTest)
+endif()
