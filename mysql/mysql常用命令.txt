@@ -1,0 +1,125 @@
+数据库：
+1.查看所有数据库
+	show databases;
+2.创建数据库
+	create datebase datebase_name;
+3.使用指定数据库
+	use database_name;
+4.删除数据库
+	drop database database_name;
+
+表：
+1.查看当前数据库中的所有表
+	show tables;
+2.创建表
+	create table table_name(column1 datatype, column2 datatype, ...);
+3.查看表结构
+	describe table_name;
+4.删除表
+	drop table table_name;
+5.修改表结构
+	alter table table_name add colunm datatype;
+	alter table table_name modify colunm new_datatype;
+	alter table table_name drop colunm;
+
+数据操作：
+1.插入数据
+	insert into table_name (colunm1, column2, ...) values (value1, value2, ...);
+2.查询数据
+	select column1, column2, ... from table_name where condition;
+3.更新数据
+	update table_name set column1 = value1, column2 = value2, ... where condition;
+4.删除数据
+	delete from table_name where condition;
+
+用户管理：
+1.创建新用户
+	create user 'username'@'host' identified by 'password';
+2.授予用户权限
+	grant all privileges on database_name.* to 'username'@'host';
+3.撤销用户权限
+	revoke privilege on database_name.* from 'username'@'host';
+4.查看用户权限
+	show grants for 'username'@'host';
+5.删除用户
+	DROP user 'username'@'host';
+
+其他操作：
+1.查看当前mysql版本
+	select version();
+2.查看当前用户
+	select user();
+3.推出mysql命令行
+	exit;
+
+使用命令行连接和管理数据库：
+mysql.exe -h ipaddress -u username -P port -p -D database_name;
+1.连接数据库
+	mysql.exe -u 'username'@'host' -p;
+2.连接指定数据库
+	mysql.exe -u 'username'@'host' -p database_name;
+3.从文件执行sql语句
+	mysql.exe -u 'username'@'host' -p < script.sql;
+
+
+常见筛选条件：
+1.'='，'!='，'>'，'<'，'>='，'<='
+2.between ... and ...
+	SELECT * FROM transactions WHERE date BETWEEN '2024-01-01' AND '2024-12-31';
+3.'in'
+	SELECT * FROM employees WHERE department IN ('HR', 'Finance', 'IT');
+4.'like'
+	SELECT * FROM customers WHERE name LIKE 'J%';   -- 查找以 'J' 开头的名字
+	SELECT * FROM products WHERE code LIKE 'A_23'; -- 查找以 'A' 开头，后面紧跟任意一个字符，再跟 '23' 的产品代码
+5.'regexp'
+	SELECT * FROM emails WHERE address REGEXP '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$';
+6.'IS NULL'，'IS NOT NULL'
+7.'and'，'or'
+
+高级筛选条件：
+1.子查询
+	用于在一个查询中嵌套另一个查询，以根据外部查询的结果过滤数据
+	SELECT * FROM employees 
+	WHERE department_id = (SELECT id FROM departments WHERE name = 'Sales');
+2.聚合筛选
+	与 HAVING 一起使用，用于在 GROUP BY 之后过滤聚合结果
+	SELECT department, AVG(salary) AS avg_salary 
+	FROM employees 
+	GROUP BY department 
+	HAVING AVG(salary) > 50000;
+3.联接和复杂条件
+	使用 JOIN 结合 WHERE 条件来筛选跨多个表的数据
+	SELECT e.name, d.name AS department, p.name AS project 
+	FROM employees e
+	JOIN departments d ON e.department_id = d.id
+	JOIN projects p ON e.project_id = p.id
+	WHERE d.name = 'IT' AND p.deadline < '2024-07-01';
+	
+跨数据库组合查询：
+1.使用union（表结构不同时不能使用）
+	SELECT * FROM database1.table_name WHERE condition
+	UNION
+	SELECT * FROM database2.table_name WHERE condition
+	UNION
+	SELECT * FROM database3.table_name WHERE condition;
+2.使用join
+	SELECT a.*, b.*
+	FROM database1.table_name a
+	JOIN database2.table_name b ON a.common_column = b.common_column
+	WHERE a.condition AND b.condition;
+
+生成删除所有数据库的语句：
+SELECT CONCAT('DROP DATABASE `', schema_name, '`;')
+FROM information_schema.schemata
+WHERE schema_name NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys');
+
+生成删除数据库里所有表的语句：
+SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`;')
+FROM information_schema.tables
+WHERE table_schema = 'database_name';
+
+
+
+注意：
+创建表时，加上AUTO_INCREMENT PRIMARY KEY，表示将这个作为自动递增主键
+
