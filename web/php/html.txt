@@ -1,0 +1,90 @@
+1. HTML 文档的基本结构
+<!DOCTYPE html>：声明文档类型和 HTML 版本。它告诉浏览器这是一个 HTML5 文档
+<html>：根元素，包含整个 HTML 文档的内容
+<html lang="en">：
+<head>：包含文档的元数据（如标题、字符集、样式表、脚本等）
+<body>：包含文档的可见内容（如文本、图片、链接、表单等）
+
+2. 元数据和文档头部
+<title>：定义浏览器标签栏或窗口标题。
+<meta charset="UTF-8">：提供文档的元数据，如字符集、作者、描述等。
+<meta name="description" content="网页描述">：提供文档的元数据，如字符集、作者、描述等。
+<link rel="stylesheet" href="styles.css">：用于链接外部资源，例如 CSS 文件
+<script src="script.js"></script>包含或链接 JavaScript 脚本。
+
+3. 头部标签
+<h1> 到 <h6>：定义标题，<h1> 是最高级别标题，<h6> 是最低级别标题
+<h1>主标题</h1>
+<h2>副标题</h2>
+<p>：定义段落
+<p>这是一个段落。</p>：定义段落
+<br>：插入换行符，不需要关闭标签。
+<p>第一行<br>第二行</p>
+<hr>：插入水平线，通常用于分隔内容，不需要关闭标签。
+
+4. 文本格式化
+<strong>重要内容</strong>：加粗文本，表示强烈的强调
+<em>强调文本</em>：斜体文本，表示强调
+<u>下划线文本</u>:下划线文本，虽然不推荐用于强调
+
+5. 链接和引用
+<a href="https://www.example.com">访问示例网站</a>：定义超链接，href 属性指定链接目标
+<img src="image.jpg" alt="描述性文本">：插入图片，src 属性指定图片源，alt 属性提供图片的替代文本
+<cite>书名或文章标题</cite>：引用来源或作品标题
+
+6. 列表
+无序列表：
+<ul>：定义无序列表
+  <li>项 1</li>>：定义列表项
+  <li>项 2</li>
+</ul>
+
+有序列表：
+<ol：定义有序列表
+  <li>第一项</li>定义列表项
+  <li>第二项</li>
+</ol>
+
+7. 表格
+<table>定义表格。
+<tr>：定义表格行
+html
+<td>：定义表格单元格。
+<th>：定义表头单元格，通常加粗居中
+<thead>：定义表格的头部区域
+<tbody>：定义表格的主体区域。
+<tfoot>：定义表格的脚注区域
+
+8. 表单
+<form action="submit.php" method="POST">：定义表单，action 属性指定表单提交的 URL，为空即为当前文件，method 属性指定提交方法（如 GET 或 POST）
+<input>：定义输入字段，type 属性指定输入类型（如 text、password、submit）。
+<input type="text" name="username" placeholder="用户名">
+<input type="submit" value="提交">
+<textarea>
+<textarea name="message" rows="4" cols="50"></textarea>：定义多行文本输入字段。
+<button type="button">点击我</button>：定义按钮
+<select> 和 <option>：定义下拉选择菜单。
+<select name="options">
+  <option value="1">选项 1</option>
+  <option value="2">选项 2</option>
+</select>
+
+9. 语义元素
+<header>：定义文档或部分的头部区域
+  <h1>网站标题</h1>
+</header>
+<nav>：定义导航链接区域
+  <a href="home.html">首页</a>
+  <a href="about.html">关于我们</a>
+</nav>
+<article>：定义独立的内容块，通常用来表示一篇文章或博客帖子
+  <h2>文章标题</h2>
+  <p>文章内容...</p>
+</article>
+<section>：定义文档中的一个区域或章节，用于将文档分成不同的部分
+  <h2>章节标题</h2>
+  <p>章节内容...</p>
+</section>
+<footer>：定义文档或部分的底部区域，通常包含版权信息或联系信息
+  <p>版权 © 2024</p>
+</footer>

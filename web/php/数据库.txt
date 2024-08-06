@@ -1,0 +1,32 @@
+1.创建数据库连接对象
+$mysqli = new mysqli(localhost, "root", "", "myweb");
+
+2.判断连接状态,并结束php脚本的执行
+if($mysqli->connect_error)
+{
+	die("连接失败" . $mysqli->connect_error)
+}
+
+3.准备数据库语句
+$stmt = $mysqli->prepare("SELECT password FROM users WHERE username = ?");
+
+4.绑定参数
+$stmt->bind_param("s", $username);
+
+5.执行语句
+$stmt->execute(); // 执行语句
+
+6.绑定结果
+$stmt->bind_result($hashed_password);
+
+7.获取结果（从执行结果里，挑一行数据，再fetch，就是挑另一行数据）
+$stmt->fetch(); // 获取结果
+
+8.验证用户输入的密码是否与存储的哈希密码匹配，返回值为true或false
+password_verify($password, $hashed_password)
+
+9.关闭语句
+$stmt->close();
+
+10.关闭数据库连接
+$mysqli->close();

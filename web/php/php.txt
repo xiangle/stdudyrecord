@@ -1,0 +1,19 @@
+1.外框表明这是一个PHP脚本
+<?PHP
+?>
+
+2.获取用户提交的表单数据
+if($_SERVER[‘REQUEST_METHOD'] == 'POST')
+{
+	$user = $_POST['user'];
+	$password = $_POST['password'];
+}
+
+3.重定向到新的php页面
+header("Location: stories.php");
+
+4.启动会话
+session_start()
+
+5.存储会话数据
+$_SESSION
