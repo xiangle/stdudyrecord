@@ -1,2 +1,0 @@
-https://github.com/abbodi1406/vcredist/releases
-https://sourceforge.net/projects/wampserver/
