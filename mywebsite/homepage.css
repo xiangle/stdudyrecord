@@ -1,0 +1,125 @@
+		body {
+			background: url('story.jpg') no-repeat center center fixed;
+			background-size: cover;
+			font-family: Arial, sans-serif;
+			position: relative;
+		}
+
+		.container {
+			display: flex;
+			margin-left: calc(20% + 30px); /* 留出侧边栏和边距的空间 */
+			width: calc(100% - 20% - 30px - 20px); /* 留出右侧间距 */
+			padding: 20px;
+			background: rgba(255, 255, 255, 0.8);
+			border-radius: 10px;
+			min-height: calc(100vh - 40px); /* 留出上下的空间 */
+			margin-top: 20px; /* 留出顶部空间 */
+			margin-bottom: 20px; /* 留出底部空间 */
+			position: relative; /* 使边框对齐 */
+		}
+
+		.sidebar {
+			width: 20%;
+			max-width: 260px; /* 限制最大宽度 */
+			background: linear-gradient(to bottom right, #ffb3c6, #ffe0e6); /* 粉色渐变背景 */
+			border: 2px solid #ff69b4; /* 粉色边框 */
+			border-radius: 15px; /* 圆角边框 */
+			padding: 10px;
+			overflow-y: auto; /* 内容超出时显示垂直滚动条 */
+			position: fixed; /* 固定定位 */
+			top: 80px;
+			left: 60px;
+			bottom: 20px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+		}
+
+		/* Updated CSS for date hover and click effects */
+		.accordion-date-header {
+			cursor: pointer;
+			font-size: 16px; /* Ensure font size is consistent */
+			padding: 10px;
+		}
+
+		.accordion-date-header:hover {
+			color: #007bff; /* Color when hovering over the date */
+			font-weight: bold;
+		}
+
+		.accordion-date-header.active {
+			color: #0056b3; /* Color when the date is clicked */
+			font-weight: bold;
+		}
+
+		.accordion {
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			overflow: hidden;
+			margin-bottom: 10px;
+		}
+
+		.accordion-header {
+			background-color: #f1f1f1;
+			padding: 10px;
+			cursor: pointer;
+			font-size: 16px;
+			border: none;
+			border-radius: 0;
+			text-align: left;
+			display: flex;
+			align-items: center;
+		}
+
+		.accordion-header::before {
+			content: '+';
+			display: inline-block;
+			margin-right: 10px;
+			font-size: 18px;
+		}
+
+		.accordion-header.active::before {
+			content: '-';
+		}
+
+		.accordion-content {
+			display: none;
+			padding: 10px;
+			background-color: white;
+		}
+		.accordion-content p {
+			margin: 0;
+		}
+		        .logout-btn {
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background-color: #ff69b4; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            font-size: 14px; 
+            cursor: pointer; 
+            transition: background-color 0.3s; 
+        }
+        .logout-btn:hover {
+            background-color: #ff1493; 
+        }
+		.homepage-btn {
+			position: fixed;
+			top: 20px;
+			left: 60px;
+			background-color: transparent; /* 设置背景为透明 */
+			color: #ff69b4; /* 字体颜色设置为粉色 */
+			border: 2px solid #ff69b4; /* 粉色边框，增强视觉效果 */
+			padding: 10px 20px;
+			border-radius: 5px;
+			text-decoration: none;
+			font-size: 14px;
+			cursor: pointer;
+			transition: background-color 0.3s, color 0.3s; /* 增加颜色过渡效果 */
+		}
+		.homepage-btn:hover {
+			background-color: #ff69b4; /* 鼠标悬停时的背景色 */
+			color: white; /* 鼠标悬停时的字体颜色 */
+		}
