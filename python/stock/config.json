@@ -1,0 +1,7 @@
+{
+  "width": 150,
+  "height": 25,
+  "alpha": 0.5,
+  "refresh_interval": 1,
+  "stocks": [ "sh000001", "sh600667"]
+}
