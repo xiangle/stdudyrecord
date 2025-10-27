@@ -1,121 +1,199 @@
-import argparse
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, r2_score
-from statistics import mean
+import sys
+import os
 
-# ===============================
-# 🧩 特征工程
-# ===============================
-def add_features(df):
-    df = df.copy()
-    df["sum"] = df["m1"] + df["m2"] + df["m3"]
-    df["diff_max_min"] = df[["m1","m2","m3"]].max(axis=1) - df[["m1","m2","m3"]].min(axis=1)
-    df["odd_count"] = df[["m1","m2","m3"]].apply(lambda x: sum(v%2 for v in x), axis=1)
-    return df
+# ==========================
+# 参数输入
+# ==========================
+if len(sys.argv) >= 2:
+    FILENAME = sys.argv[1]
+else:
+    FILENAME = "pl3.csv"
 
-# ===============================
-# 🧠 滑动窗口构建
-# ===============================
-def make_samples(df, window):
-    X, y1, y2, y3 = [], [], [], []
-    for i in range(len(df)-window):
-        window_data = df.iloc[i:i+window]
-        X.append(window_data.values.flatten())
-        target = df.iloc[i+window]
-        y1.append(target["m1"])
-        y2.append(target["m2"])
-        y3.append(target["m3"])
-    return np.array(X), np.array(y1), np.array(y2), np.array(y3)
+ALPHA = 0.1  # 冷号补偿系数
 
-# ===============================
-# 🎯 模型训练 + 验证
-# ===============================
-def train_and_eval(df, window):
-    X, y1, y2, y3 = make_samples(df, window)
-    if len(X) < 10:
-        return None
-    X_train, X_val, y1_train, y1_val = train_test_split(X, y1, test_size=0.2, random_state=42)
-    _, _, y2_train, y2_val = train_test_split(X, y2, test_size=0.2, random_state=42)
-    _, _, y3_train, y3_val = train_test_split(X, y3, test_size=0.2, random_state=42)
+# 搜索窗口和验证期闭区间
+WINDOW_START = 20
+WINDOW_END = 40
+VALID_START = 5
+VALID_END = 15
 
-    models = [RandomForestRegressor(n_estimators=300, random_state=42) for _ in range(3)]
-    for m, y_train in zip(models, [y1_train, y2_train, y3_train]):
-        m.fit(X_train, y_train)
+# ==========================
+# 文件读取与检查
+# ==========================
+if not os.path.exists(FILENAME):
+    raise FileNotFoundError(f"文件 {FILENAME} 不存在，请检查路径。")
 
-    # 计算验证集准确性
-    val_preds = [m.predict(X_val) for m in models]
-    for i, (y_val, pred) in enumerate(zip([y1_val, y2_val, y3_val], val_preds), 1):
-        mae = mean_absolute_error(y_val, pred)
-        r2 = r2_score(y_val, pred)
-        print(f"机器{i}模型验证准确性: MAE={mae:.3f}, R²={r2:.3f}")
+data = pd.read_csv(FILENAME, header=None)[0].astype(str).tolist()
 
-    return {"window": window, "models": models}
+# ==========================
+# 工具函数
+# ==========================
+def split_digits(num_str):
+    return [int(num_str[0]), int(num_str[1]), int(num_str[2])]
 
-# ===============================
-# 🔢 预测下一天 + 概率分布
-# ===============================
-def predict_prob(models, df, window):
-    last_window = df.tail(window).values.flatten().reshape(1, -1)
-    results = []
+def weighted_freq(data):
+    weights = [0.95 ** i for i in range(len(data))][::-1]
+    pos_freq = {p: {i: 0 for i in range(10)} for p in range(3)}
+    for idx, row in enumerate(data):
+        for p in range(3):
+            pos_freq[p][row[p]] += weights[idx]
+    return pos_freq
 
-    for model in models:
-        # 每棵树预测整数
-        tree_preds = [round(tree.predict(last_window)[0]) for tree in model.estimators_]
-        # 限制 0-9
-        tree_preds = [min(max(0, p), 9) for p in tree_preds]
+def cold_balance_freq(data):
+    base = weighted_freq(data)
+    pos_last_seen = {p: {i: None for i in range(10)} for p in range(3)}
+    for idx, row in enumerate(data[::-1]):
+        for p in range(3):
+            if pos_last_seen[p][row[p]] is None:
+                pos_last_seen[p][row[p]] = idx
+    max_miss = {p: max(v for v in pos_last_seen[p].values() if v is not None) for p in range(3)}
+    for p in range(3):
+        for i in range(10):
+            miss = pos_last_seen[p][i] if pos_last_seen[p][i] is not None else max_miss[p]
+            base[p][i] += ALPHA * (miss / max_miss[p])
+    return base
 
-        # 统计概率
-        counts = [tree_preds.count(i) for i in range(10)]
-        total = sum(counts)
-        probs = [c/total for c in counts]
+def multi_feature_score(data):
+    base = weighted_freq(data)
+    sums = [sum(x) for x in data]
+    avg_sum = np.mean(sums)
+    odd_balance = sum(sum(d % 2 for d in x) for x in data) / (len(data)*3)
+    for p in range(3):
+        for i in range(10):
+            sum_effect = 1 - abs(i - avg_sum/3) / 9
+            odd_effect = 1 - abs((i % 2) - odd_balance)
+            base[p][i] = 0.5*base[p][i] + 0.3*sum_effect + 0.2*odd_effect
+    return base
 
-        # 最可能的预测
-        pred = np.argmax(probs)
-        results.append({"pred": pred, "probs": probs})
-    return results
+def select_top2(freq):
+    return {p: [k for k,_ in sorted(v.items(), key=lambda x:x[1], reverse=True)[:2]] for p,v in freq.items()}
 
-# ===============================
-# 🔍 自动优化窗口
-# ===============================
-def auto_optimize(df, windows):
-    best_result = None
-    for w in windows:
-        print(f"\n尝试窗口大小: {w}")
-        r = train_and_eval(df, w)
-        if r:
-            best_result = r  # 这里简单选最后一个有效窗口，可按R²优化
-    print(f"\n选择窗口大小: {best_result['window']}")
-    return best_result
+def check_hit_in_future(pred, future_data):
+    for actual in future_data:
+        if all(actual[p] in pred[p] for p in range(3)):
+            return True, actual
+    return False, None
 
-# ===============================
-# 📂 主函数
-# ===============================
-def main(args):
-    with open(args.csv,'r',encoding='utf-8') as f:
-        lines = [line.strip() for line in f.readlines() if line.strip()]
-    data = [[int(line[0]), int(line[1]), int(line[2])] for line in lines]
-    df = pd.DataFrame(data, columns=["m1","m2","m3"])
-    df = add_features(df)
-    df = df.tail(args.train_days).reset_index(drop=True)
+# ==========================
+# 数据预处理
+# ==========================
+data = data[::-1]  # 时间顺序
+data = [split_digits(x.zfill(3)) for x in data]
 
-    best = auto_optimize(df, args.windows)
-    preds = predict_prob(best["models"], df, best["window"])
+# ==========================
+# 自动搜索最佳窗口 + 验证期数
+# ==========================
+window_list = range(WINDOW_START, WINDOW_END + 1)
+valid_len_list = range(VALID_START, VALID_END + 1)
 
-    # 输出概率分布
-    for i, p in enumerate(preds, 1):
-        print(f"\n机器{i}预测最可能结果: {p['pred']}")
-        print("概率分布:")
-        for num, prob in enumerate(p['probs']):
-            print(f"  {num}: {prob*100:.1f}%")
+best_overall_rate = 0
+best_overall_params = None
+best_overall_results = None
+best_overall_records = None
 
-# python auto_predict_ball_full.py --csv balls.csv --train_days 120 --windows 10 20 30 40 50
-if __name__=="__main__":
-    parser = argparse.ArgumentParser(description="整数+概率分布+验证准确性+自动窗口优化")
-    parser.add_argument("--csv", type=str, default="balls.csv", help="输入文件，每行如 234")
-    parser.add_argument("--train_days", type=int, default=120, help="用于训练的最近天数")
-    parser.add_argument("--windows", nargs="+", type=int, default=[10,20,30,40,50], help="尝试窗口大小")
-    args = parser.parse_args()
-    main(args)
+for WINDOW in window_list:
+    for VALID_LEN in valid_len_list:
+        min_required = WINDOW + VALID_LEN
+        if len(data) < min_required:
+            continue
+
+        step = VALID_LEN
+        total = len(data) - WINDOW - VALID_LEN + 1
+        results = {"热度加权":0, "冷热平衡":0, "多特征融合":0}
+        records = []
+
+        for i in range(0, total, step):
+            train = data[i:i+WINDOW]
+            test_future = data[i+WINDOW:i+WINDOW+VALID_LEN]
+            if len(test_future) < VALID_LEN:
+                continue
+            for name, func in {
+                "热度加权": weighted_freq,
+                "冷热平衡": cold_balance_freq,
+                "多特征融合": multi_feature_score
+            }.items():
+                freq = func(train)
+                pred = select_top2(freq)
+                hit, actual_hit = check_hit_in_future(pred, test_future)
+                if hit:
+                    results[name] += 1
+                    records.append({
+                        "方法": name,
+                        "百位预测1": pred[0][0],
+                        "百位预测2": pred[0][1],
+                        "十位预测1": pred[1][0],
+                        "十位预测2": pred[1][1],
+                        "个位预测1": pred[2][0],
+                        "个位预测2": pred[2][1],
+                        "实际百位": actual_hit[0],
+                        "实际十位": actual_hit[1],
+                        "实际个位": actual_hit[2]
+                    })
+
+        if total > 0:
+            rates = {k: v/total*100 for k,v in results.items()}
+            max_rate = max(rates.values())
+            if max_rate > best_overall_rate:
+                best_overall_rate = max_rate
+                best_overall_params = (WINDOW, VALID_LEN)
+                best_overall_results = rates
+                best_overall_records = records
+
+# ==========================
+# 使用最佳参数预测最新一期
+# ==========================
+WINDOW, VALID_LEN = best_overall_params
+step = VALID_LEN
+latest_train = data[-WINDOW - VALID_LEN + step:]
+best_alg = max(best_overall_results, key=best_overall_results.get)
+best_func = {
+    "热度加权": weighted_freq,
+    "冷热平衡": cold_balance_freq,
+    "多特征融合": multi_feature_score
+}[best_alg]
+latest_pred = select_top2(best_func(latest_train[-WINDOW:]))
+
+# 保存最新预测
+best_overall_records.append({
+    "方法": "最新预测",
+    "百位预测1": latest_pred[0][0],
+    "百位预测2": latest_pred[0][1],
+    "十位预测1": latest_pred[1][0],
+    "十位预测2": latest_pred[1][1],
+    "个位预测1": latest_pred[2][0],
+    "个位预测2": latest_pred[2][1],
+    "实际百位": "-",
+    "实际十位": "-",
+    "实际个位": "-"
+})
+
+# ==========================
+# 保存结果到 CSV (UTF-8-SIG)
+# ==========================
+df_records = pd.DataFrame(best_overall_records)
+df_records.to_csv("result.csv", index=False, encoding="utf-8-sig")
+
+with open("result.csv", "a", encoding="utf-8-sig") as f:
+    f.write("\n算法历史胜率：\n")
+    for k,v in best_overall_results.items():
+        f.write(f"{k},{v:.1f}%\n")
+    f.write(f"最佳算法,{best_alg}（胜率 {best_overall_results[best_alg]:.1f}%）\n")
+    f.write(f"最佳窗口大小,{WINDOW},最佳预测期数,{VALID_LEN}\n")
+
+# ==========================
+# 屏幕输出
+# ==========================
+print("🎯 三种算法预测胜率（未来命中算成功）：")
+for k,v in best_overall_results.items():
+    print(f" - {k}：{v:.1f}%")
+
+print(f"\n🏆 最佳算法：{best_alg}（胜率 {best_overall_results[best_alg]:.1f}%）")
+print(f"🔧 最佳窗口大小: {WINDOW}, 最佳预测期数: {VALID_LEN}")
+
+print("\n🔮 预测最新一期复式号码：")
+for pos_name, idx in zip(["百位", "十位", "个位"], range(3)):
+    print(f"{pos_name}：{latest_pred[idx]}")
+
+print(f"\n✅ 所有预测详情及胜率已保存到 result.csv")
