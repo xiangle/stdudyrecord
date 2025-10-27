@@ -13,11 +13,12 @@ else:
 
 ALPHA = 0.1  # 冷号补偿系数
 
-# 搜索窗口和验证期闭区间
 WINDOW_START = 20
 WINDOW_END = 40
 VALID_START = 5
 VALID_END = 15
+
+TOP_K = 3  # 可调整为 1、3 等，表示每个位预测前几名
 
 # ==========================
 # 文件读取与检查
@@ -67,8 +68,8 @@ def multi_feature_score(data):
             base[p][i] = 0.5*base[p][i] + 0.3*sum_effect + 0.2*odd_effect
     return base
 
-def select_top2(freq):
-    return {p: [k for k,_ in sorted(v.items(), key=lambda x:x[1], reverse=True)[:2]] for p,v in freq.items()}
+def select_topk(freq, k=TOP_K):
+    return {p: [num for num,_ in sorted(v.items(), key=lambda x:x[1], reverse=True)[:k]] for p,v in freq.items()}
 
 def check_hit_in_future(pred, future_data):
     for actual in future_data:
@@ -115,18 +116,15 @@ for WINDOW in window_list:
                 "多特征融合": multi_feature_score
             }.items():
                 freq = func(train)
-                pred = select_top2(freq)
+                pred = select_topk(freq, k=TOP_K)
                 hit, actual_hit = check_hit_in_future(pred, test_future)
                 if hit:
                     results[name] += 1
                     records.append({
                         "方法": name,
-                        "百位预测1": pred[0][0],
-                        "百位预测2": pred[0][1],
-                        "十位预测1": pred[1][0],
-                        "十位预测2": pred[1][1],
-                        "个位预测1": pred[2][0],
-                        "个位预测2": pred[2][1],
+                        "百位预测": pred[0],
+                        "十位预测": pred[1],
+                        "个位预测": pred[2],
                         "实际百位": actual_hit[0],
                         "实际十位": actual_hit[1],
                         "实际个位": actual_hit[2]
@@ -153,17 +151,14 @@ best_func = {
     "冷热平衡": cold_balance_freq,
     "多特征融合": multi_feature_score
 }[best_alg]
-latest_pred = select_top2(best_func(latest_train[-WINDOW:]))
+latest_pred = select_topk(best_func(latest_train[-WINDOW:]), k=TOP_K)
 
 # 保存最新预测
 best_overall_records.append({
     "方法": "最新预测",
-    "百位预测1": latest_pred[0][0],
-    "百位预测2": latest_pred[0][1],
-    "十位预测1": latest_pred[1][0],
-    "十位预测2": latest_pred[1][1],
-    "个位预测1": latest_pred[2][0],
-    "个位预测2": latest_pred[2][1],
+    "百位预测": latest_pred[0],
+    "十位预测": latest_pred[1],
+    "个位预测": latest_pred[2],
     "实际百位": "-",
     "实际十位": "-",
     "实际个位": "-"
