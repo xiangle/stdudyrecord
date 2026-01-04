@@ -3,5 +3,5 @@
   "height": 25,
   "alpha": 0.5,
   "refresh_interval": 1,
-  "stocks": [ "sh000001", "sh600667"]
+  "stocks": [ "sh000001", "sh600678", "sz002083"]
 }

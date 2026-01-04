@@ -1,0 +1,19 @@
+https://github.com/Crauzer/Obsidian/releases
+https://github.com/CommunityDragon/Data
+
+
+只用 Obsidian 的静态替换完整步骤
+1. 准备工作（必做）
+关闭 LOL 客户端与 WeGame，避免文件占用。
+备份目标 WAD 文件：找到 LOL 安装目录下的 Game 文件夹（如 C:\Riot Games\League of Legends\Game），复制要修改的.wad.client（如 Characters\Garen.wad.client）到其他安全目录，防止操作失误无法恢复。
+准备自定义模型：确保模型 / 贴图文件格式为.skl、.skn、.dds，且文件名、路径与原文件完全一致（大小写、后缀均需匹配）。
+配置 Obsidian 哈希表：首次使用 Obsidian 需下载哈希表（hashes.game.txt 等），放入 Obsidian 的wad_hashtables目录，点击 “Reload Hashtables”，确保能正常识别 WAD 内文件路径与名称。
+2. Obsidian 独立编辑替换（核心操作）
+启动 Obsidian，点击 “Open Wad”，选择已备份的目标.wad.client文件。
+定位原文件：在左侧目录树展开对应路径（如 Characters\Garen\skins\base），找到要替换的原模型（.skl、.skn）和贴图（.dds）文件。
+删除原文件：选中目标文件，右键选择 “Delete” 删除。
+添加自定义文件：将准备好的同名自定义文件拖拽到 Obsidian 中对应的目录位置，确保路径与原文件一致。
+保存修改：点击 Obsidian 界面的 “Save Wad”，覆盖原备份文件（或保存为新文件后，手动替换游戏目录中的原 WAD 文件）。
+3. 替换并验证效果
+将修改后的.wad.client文件复制到 LOL Game 文件夹的对应位置，覆盖原文件。
+启动 LOL，进入训练模式选择对应英雄，查看模型是否成功替换。
