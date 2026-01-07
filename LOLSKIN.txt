@@ -17,3 +17,5 @@ https://github.com/CommunityDragon/Data
 3. 替换并验证效果
 将修改后的.wad.client文件复制到 LOL Game 文件夹的对应位置，覆盖原文件。
 启动 LOL，进入训练模式选择对应英雄，查看模型是否成功替换。
+
+https://github.com/LeagueToolkit/cslol-manager/releases/download/2026-01-06-3d0b890/cslol-manager-windows.exe
